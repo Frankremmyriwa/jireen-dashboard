@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jireen v5">
+<title>Jireen Ultra v5 — XM Live</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;600;700&display=swap');
+:root{
+  --bg:#050810;--bg2:#080d18;--bg3:#0c1220;--card:#0a1020;
+  --border:#1a2540;--border2:#243050;
+  --accent:#00d4ff;--green:#00ff88;--green2:#00cc66;
+  --red:#ff3355;--gold:#ffcc00;--purple:#aa44ff;--orange:#ff8800;
+  --text:#c8d8f0;--dim:#4a6080;
+  --mono:'Share Tech Mono',monospace;--sans:'Rajdhani',sans-serif;
+  --st:env(safe-area-inset-top,44px);--sb:env(safe-area-inset-bottom,34px);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* SETUP OVERLAY */
+.setup-overlay{position:fixed;inset:0;background:rgba(5,8,16,0.97);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;gap:16px}
+.setup-overlay h2{color:var(--accent);font-size:20px;font-weight:700;letter-spacing:0.05em}
+.setup-overlay p{color:var(--dim);font-size:12px;text-align:center;font-family:var(--mono);line-height:1.7}
+.setup-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:12px;color:var(--text);font-family:var(--mono);font-size:13px;outline:none}
+.setup-input:focus{border-color:var(--accent)}
+.setup-btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#0088cc);border:none;border-radius:8px;color:#000;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans);letter-spacing:0.05em}
+
+/* TICKER */
+.ticker-wrap{overflow:hidden;height:26px;background:var(--bg2);border-bottom:1px solid var(--border)}
+.ticker{display:flex;gap:28px;padding:5px 12px;white-space:nowrap;animation:ticker 30s linear infinite;width:max-content}
+@keyframes ticker{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.ti{font-size:10px;font-family:var(--mono);color:var(--dim)}
+.tv{margin-left:5px}
+
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:100;padding:calc(var(--st) + 6px) 14px 8px;background:linear-gradient(180deg,#050810 85%,transparent);display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;background:linear-gradient(135deg,var(--accent),#0066aa);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:bold;color:#000;flex-shrink:0;box-shadow:0 0 18px rgba(0,212,255,0.4)}
+.hdr-t{flex:1}
+.hdr-t h1{font-size:15px;font-weight:700;color:var(--accent);letter-spacing:0.05em}
+.hdr-t p{font-size:9px;color:var(--dim);letter-spacing:0.15em;font-family:var(--mono)}
+.live-b{display:flex;align-items:center;gap:4px;background:rgba(0,255,136,0.1);border:1px solid rgba(0,255,136,0.3);border-radius:20px;padding:3px 9px;font-size:9px;color:var(--green);font-family:var(--mono)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.2s ease-in-out infinite}
+.err-b{display:flex;align-items:center;gap:4px;background:rgba(255,51,85,0.1);border:1px solid rgba(255,51,85,0.3);border-radius:20px;padding:3px 9px;font-size:9px;color:var(--red);font-family:var(--mono)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.rbtn{width:30px;height:30px;border-radius:7px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);color:var(--accent);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s}
+.rbtn:active{transform:rotate(180deg)}
+
+/* TABS */
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;position:sticky;top:calc(var(--st) + 56px);z-index:99}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:9px 13px;font-size:10px;font-weight:600;color:var(--dim);background:transparent;border:none;border-bottom:2px solid transparent;cursor:pointer;font-family:var(--sans);letter-spacing:0.05em;white-space:nowrap;transition:all 0.15s}
+.tab.on{color:var(--accent);border-bottom-color:var(--accent);background:rgba(0,212,255,0.05)}
+
+/* CONNECTION BANNER */
+.conn-banner{margin:10px 12px 0;padding:10px 14px;border-radius:8px;display:flex;align-items:center;gap:10px;font-size:11px;font-family:var(--mono)}
+.conn-ok{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.3);color:var(--green)}
+.conn-err{background:rgba(255,51,85,0.08);border:1px solid rgba(255,51,85,0.3);color:var(--red)}
+.conn-wait{background:rgba(255,204,0,0.08);border:1px solid rgba(255,204,0,0.3);color:var(--gold)}
+
+/* CONTENT */
+.content{padding:10px 12px calc(var(--sb) + 76px)}
+.pg{display:none}
+.pg.on{display:block}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:9px;overflow:hidden}
+.ch{padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:rgba(255,255,255,0.02)}
+.ct{font-size:10px;font-weight:700;letter-spacing:0.12em;color:var(--dim);font-family:var(--mono)}
+.cb{padding:11px 14px}
+
+/* SIGNAL BANNER */
+.sig-banner{margin:0 0 9px;border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:11px;position:relative;overflow:hidden}
+.sig-banner.buy{background:rgba(0,255,136,0.08);border:1px solid rgba(0,255,136,0.4)}
+.sig-banner.sell{background:rgba(255,51,85,0.08);border:1px solid rgba(255,51,85,0.4)}
+.sig-banner.wait{background:rgba(255,204,0,0.06);border:1px solid rgba(255,204,0,0.3)}
+.sig-icon{font-size:26px;flex-shrink:0}
+.sig-txt h2{font-size:21px;font-weight:700;letter-spacing:0.05em}
+.sig-txt p{font-size:10px;font-family:var(--mono);color:var(--dim);margin-top:2px}
+.sig-banner.buy .sig-txt h2{color:var(--green)}
+.sig-banner.sell .sig-txt h2{color:var(--red)}
+.sig-banner.wait .sig-txt h2{color:var(--gold)}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.02)}}
+.pulse{animation:pulse 2s ease-in-out infinite}
+
+/* RINGS */
+.rings{display:flex;justify-content:center;gap:20px;padding:14px 0 6px;align-items:center}
+.rc{position:relative;width:100px;height:100px}
+.rsvg{transform:rotate(-90deg)}
+.rbg{fill:none;stroke:var(--border2);stroke-width:8}
+.rf{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1)}
+.rt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.rn{font-size:26px;font-weight:700;font-family:var(--mono)}
+.rl{font-size:8px;color:var(--dim);letter-spacing:0.15em}
+
+/* ROWS */
+.row{display:flex;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);gap:8px}
+.row:last-child{border-bottom:none}
+.ri{font-size:13px;width:20px;text-align:center;flex-shrink:0}
+.rl2{flex:1;font-size:12px;color:var(--text);font-weight:500}
+.rv{font-size:12px;font-family:var(--mono);font-weight:600}
+.bull{color:var(--green)}.bear{color:var(--red)}.gold{color:var(--gold)}.blue{color:var(--accent)}.purp{color:var(--purple)}.org{color:var(--orange)}
+
+/* PILLS */
+.pill{font-size:9px;font-weight:700;padding:3px 8px;border-radius:20px;font-family:var(--mono);letter-spacing:0.08em}
+.pg-{background:rgba(0,255,136,0.15);color:var(--green);border:1px solid rgba(0,255,136,0.3)}
+.pr-{background:rgba(255,51,85,0.15);color:var(--red);border:1px solid rgba(255,51,85,0.3)}
+.py-{background:rgba(255,204,0,0.12);color:var(--gold);border:1px solid rgba(255,204,0,0.3)}
+.pb-{background:rgba(0,212,255,0.12);color:var(--accent);border:1px solid rgba(0,212,255,0.3)}
+.pp-{background:rgba(170,68,255,0.12);color:var(--purple);border:1px solid rgba(170,68,255,0.3)}
+.pgr-{background:rgba(255,255,255,0.06);color:var(--dim);border:1px solid var(--border)}
+
+/* STAT GRID */
+.sg{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px}
+.sb{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 7px;text-align:center}
+.sv{font-size:19px;font-weight:700;font-family:var(--mono)}
+.sl2{font-size:8px;color:var(--dim);letter-spacing:0.1em;margin-top:2px}
+
+/* SIGNAL TABLE */
+.stbl{width:100%;border-collapse:collapse}
+.stbl th{font-size:9px;color:var(--dim);font-family:var(--mono);letter-spacing:0.1em;text-align:left;padding:5px 8px;border-bottom:1px solid var(--border)}
+.stbl td{font-size:11px;padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.03);vertical-align:middle}
+.stbl tr:last-child td{border-bottom:none}
+.sdot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:var(--mono);margin:0 auto}
+
+/* PROG */
+.pw{background:var(--border);border-radius:4px;height:5px;overflow:hidden}
+.pf{height:100%;border-radius:4px;transition:width 1s ease}
+
+/* TRADE ROW */
+.tr{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:7px;display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+.td{width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;font-family:var(--mono)}
+.td.buy{background:rgba(0,255,136,0.15);color:var(--green);border:1px solid rgba(0,255,136,0.4)}
+.td.sell{background:rgba(255,51,85,0.15);color:var(--red);border:1px solid rgba(255,51,85,0.4)}
+
+/* TOGGLE */
+.tog-row{display:flex;align-items:center;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.04)}
+.tog-row:last-child{border-bottom:none}
+.tog-lbl{flex:1}
+.tog-lbl h4{font-size:12px;font-weight:600}
+.tog-lbl p{font-size:9px;color:var(--dim);font-family:var(--mono);margin-top:1px}
+.tog{width:42px;height:24px;border-radius:12px;background:var(--border);cursor:pointer;position:relative;transition:background 0.25s;flex-shrink:0}
+.tog.on{background:var(--green2)}
+.tog::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:white;top:3px;left:3px;transition:transform 0.25s;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+.tog.on::after{transform:translateX(18px)}
+
+/* TAGS */
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px}
+
+/* MINI BARS */
+.mbars{display:flex;align-items:flex-end;gap:2px;height:30px}
+.mbar{flex:1;border-radius:2px 2px 0 0;min-width:5px;transition:height 0.6s}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(5,8,16,0.96);backdrop-filter:blur(20px);border-top:1px solid var(--border);display:flex;padding-bottom:var(--sb);z-index:200}
+.nb{flex:1;padding:9px 0 7px;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--dim);transition:color 0.15s;font-family:var(--sans)}
+.nb.on{color:var(--accent)}
+.nb span:first-child{font-size:19px}
+.nb span:last-child{font-size:8px;font-weight:600;letter-spacing:0.08em}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.pg.on .card{animation:fadeUp 0.3s ease both}
+.pg.on .card:nth-child(2){animation-delay:0.05s}
+.pg.on .card:nth-child(3){animation-delay:0.10s}
+.pg.on .card:nth-child(4){animation-delay:0.15s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin 1s linear infinite}
+.slbl{font-size:9px;font-weight:700;letter-spacing:0.2em;color:var(--dim);font-family:var(--mono);padding:5px 0 3px}
+</style>
+</head>
+<body>
+
+<!-- SETUP OVERLAY -->
+<div class="setup-overlay" id="setup-overlay">
+  <div style="font-size:32px">📡</div>
+  <h2>CONNECT TO MT5 BOT</h2>
+  <p>Enter your JSONbin.io Bin ID to connect<br>to your Jireen Ultra v5 bot on XM</p>
+  <p style="color:var(--accent)">Your API Key is pre-filled ✓</p>
+  <input class="setup-input" id="bin-input" placeholder="Enter Bin ID (e.g. 64ab12cd3f89abc123)" />
+  <div style="font-size:10px;color:var(--dim);font-family:var(--mono);text-align:center">
+    Get your Bin ID: jsonbin.io → Login → New Bin → copy ID from URL
+  </div>
+  <button class="setup-btn" onclick="saveBinID()">CONNECT DASHBOARD →</button>
+  <div style="font-size:10px;color:var(--dim);font-family:var(--mono);text-align:center;line-height:1.8">
+    After connecting, open MT5 on your PC<br>
+    Set InpJSONBinID = your Bin ID in EA inputs<br>
+    Tools → Options → Expert Advisors → Allow WebRequest<br>
+    Add: https://api.jsonbin.io
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <div class="ticker" id="ticker">
+    <span class="ti">XAUUSD <span class="tv bull" id="t1">—</span></span>
+    <span class="ti">EURUSD <span class="tv" id="t2">—</span></span>
+    <span class="ti">US500 <span class="tv" id="t3">—</span></span>
+    <span class="ti">USOIL <span class="tv" id="t4">—</span></span>
+    <span class="ti">Symbol <span class="tv" id="t5">—</span></span>
+    <span class="ti">Broker <span class="tv bull">XM</span></span>
+    <span class="ti">Updated <span class="tv gold" id="t6">—</span></span>
+    <span class="ti">XAUUSD <span class="tv bull" id="t1b">—</span></span>
+    <span class="ti">EURUSD <span class="tv" id="t2b">—</span></span>
+    <span class="ti">US500 <span class="tv" id="t3b">—</span></span>
+    <span class="ti">USOIL <span class="tv" id="t4b">—</span></span>
+    <span class="ti">Symbol <span class="tv" id="t5b">—</span></span>
+    <span class="ti">Broker <span class="tv bull">XM</span></span>
+    <span class="ti">Updated <span class="tv gold" id="t6b">—</span></span>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="logo">JB5</div>
+  <div class="hdr-t">
+    <h1>JIREEN ULTRA v5 · XM</h1>
+    <p id="clock">CONNECTING...</p>
+  </div>
+  <div id="conn-status" class="live-b"><div class="dot"></div>LIVE</div>
+  <button class="rbtn" onclick="fetchData(true)">↻</button>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab on" onclick="showTab('overview')">OVERVIEW</button>
+  <button class="tab"    onclick="showTab('signals')">SIGNALS</button>
+  <button class="tab"    onclick="showTab('smc')">SMC</button>
+  <button class="tab"    onclick="showTab('risk')">RISK</button>
+  <button class="tab"    onclick="showTab('trades')">TRADES</button>
+  <button class="tab"    onclick="showTab('perf')">STATS</button>
+  <button class="tab"    onclick="showTab('settings')">PARAMS</button>
+</div>
+
+<!-- CONNECTION BANNER -->
+<div class="conn-banner conn-wait" id="conn-banner">
+  📡 Connecting to MT5 bot... Make sure EA is running on XM MT5
+</div>
+
+<!-- CONTENT -->
+<div class="content">
+
+<!-- ── OVERVIEW ── -->
+<div id="pg-overview" class="pg on">
+  <div class="sig-banner wait pulse" id="sig-banner">
+    <div class="sig-icon" id="sig-icon">⏳</div>
+    <div class="sig-txt">
+      <h2 id="sig-dir">CONNECTING...</h2>
+      <p id="sig-reason">Waiting for MT5 bot data</p>
+    </div>
+    <div style="margin-left:auto;text-align:right">
+      <div style="font-size:26px;font-weight:700;font-family:var(--mono);color:var(--gold)" id="sig-score">—</div>
+      <div style="font-size:8px;color:var(--dim);font-family:var(--mono)">SCORE</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">SIGNAL STRENGTH</span><span class="pill pb-" id="regime-pill">—</span></div>
+    <div class="cb">
+      <div class="rings">
+        <div>
+          <div class="rc">
+            <svg class="rsvg" width="100" height="100" viewBox="0 0 100 100">
+              <circle class="rbg" cx="50" cy="50" r="42"/>
+              <circle class="rf" cx="50" cy="50" r="42" id="ring-buy" stroke="var(--green)" stroke-dasharray="264" stroke-dashoffset="264"/>
+            </svg>
+            <div class="rt"><div class="rn bull" id="score-buy">0</div><div class="rl">BUY</div></div>
+          </div>
+          <div style="text-align:center;font-size:9px;color:var(--dim);font-family:var(--mono);margin-top:3px">SCORE</div>
+        </div>
+        <div style="text-align:center">
+          <div style="font-size:10px;color:var(--dim);font-family:var(--mono);margin-bottom:4px">MIN</div>
+          <div style="font-size:30px;font-weight:700;font-family:var(--mono);color:var(--gold)" id="score-min">7</div>
+          <div style="font-size:8px;color:var(--dim);font-family:var(--mono);margin-top:3px">REQUIRED</div>
+          <div style="margin-top:8px" id="trade-ok"><span class="pill pgr-">WAITING</span></div>
+        </div>
+        <div>
+          <div class="rc">
+            <svg class="rsvg" width="100" height="100" viewBox="0 0 100 100">
+              <circle class="rbg" cx="50" cy="50" r="42"/>
+              <circle class="rf" cx="50" cy="50" r="42" id="ring-sell" stroke="var(--red)" stroke-dasharray="264" stroke-dashoffset="264"/>
+            </svg>
+            <div class="rt"><div class="rn bear" id="score-sell">0</div><div class="rl">SELL</div></div>
+          </div>
+          <div style="text-align:center;font-size:9px;color:var(--dim);font-family:var(--mono);margin-top:3px">SCORE</div>
+        </div>
+      </div>
+      <div class="tags" id="reason-tags"><span class="pill pgr-">Awaiting signal...</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">MARKET — XM LIVE</span></div>
+    <div class="cb">
+      <div class="row"><span class="ri">📊</span><span class="rl2">Structure</span><span class="rv" id="ov-struct">—</span></div>
+      <div class="row"><span class="ri">🧠</span><span class="rl2">SMC Bias</span><span class="rv" id="ov-smc">—</span></div>
+      <div class="row"><span class="ri">📈</span><span class="rl2">Wyckoff Phase</span><span class="rv gold" id="ov-wyc">—</span></div>
+      <div class="row"><span class="ri">⚡</span><span class="rl2">Volatility</span><span class="rv blue" id="ov-vol">—</span></div>
+      <div class="row"><span class="ri">🌐</span><span class="rl2">Weekly Bias</span><span class="rv" id="ov-week">—</span></div>
+      <div class="row"><span class="ri">🕐</span><span class="rl2">ICT Kill Zone</span><span id="ov-kz"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">📰</span><span class="rl2">News Window</span><span id="ov-news"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">💱</span><span class="rl2">Session</span><span id="ov-sess"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">🏦</span><span class="rl2">Broker</span><span class="rv blue">XM Trading</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">KEY PRICES</span></div>
+    <div class="cb">
+      <div class="row"><span class="ri">💹</span><span class="rl2">Live Price</span><span class="rv blue" id="kp-price">—</span></div>
+      <div class="row"><span class="ri">🎯</span><span class="rl2">Entry</span><span class="rv blue" id="kp-entry">—</span></div>
+      <div class="row"><span class="ri">🛑</span><span class="rl2">Stop Loss</span><span class="rv bear" id="kp-sl">—</span></div>
+      <div class="row"><span class="ri">✅</span><span class="rl2">Take Profit</span><span class="rv bull" id="kp-tp">—</span></div>
+      <div class="row"><span class="ri">〰</span><span class="rl2">VWAP</span><span class="rv gold" id="kp-vwap">—</span></div>
+      <div class="row"><span class="ri">📐</span><span class="rl2">Equilibrium (50%)</span><span class="rv purp" id="kp-equil">—</span></div>
+      <div class="row"><span class="ri">📏</span><span class="rl2">ATR</span><span class="rv" id="kp-atr">—</span></div>
+      <div class="row"><span class="ri">💱</span><span class="rl2">Spread</span><span class="rv" id="kp-spread">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SIGNALS ── -->
+<div id="pg-signals" class="pg">
+  <div class="card">
+    <div class="ch"><span class="ct">ALL 30 SIGNALS — LIVE FROM BOT</span></div>
+    <div class="cb" style="padding:0">
+      <table class="stbl"><thead><tr><th>SIGNAL</th><th>CAT</th><th style="text-align:center">PTS</th><th>STATUS</th></tr></thead>
+      <tbody id="sig-tbody"></tbody></table>
+    </div>
+  </div>
+</div>
+
+<!-- ── SMC ── -->
+<div id="pg-smc" class="pg">
+  <div class="card">
+    <div class="ch"><span class="ct">SMART MONEY CONCEPTS</span></div>
+    <div class="cb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px" id="smc-grid">
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:9px;color:var(--dim);font-family:var(--mono)">CHoCH</div><div style="font-size:14px;font-weight:700;margin-top:3px" id="smc-choch">—</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:9px;color:var(--dim);font-family:var(--mono)">BOS</div><div style="font-size:14px;font-weight:700;margin-top:3px" id="smc-bos">—</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:9px;color:var(--dim);font-family:var(--mono)">DISPLACEMENT</div><div style="font-size:14px;font-weight:700;margin-top:3px" id="smc-disp">—</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:9px;color:var(--dim);font-family:var(--mono)">ZONE</div><div style="font-size:14px;font-weight:700;margin-top:3px" id="smc-zone">—</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:9px;color:var(--dim);font-family:var(--mono)">LIQ SWEEP</div><div style="font-size:14px;font-weight:700;margin-top:3px" id="smc-liq">—</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:9px;color:var(--dim);font-family:var(--mono)">FVG</div><div style="font-size:14px;font-weight:700;margin-top:3px" id="smc-fvg">—</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:9px;color:var(--dim);font-family:var(--mono)">RETAIL TRAP</div><div style="font-size:14px;font-weight:700;margin-top:3px" id="smc-trap">—</div></div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:9px;color:var(--dim);font-family:var(--mono)">VWAP</div><div style="font-size:14px;font-weight:700;margin-top:3px" id="smc-vwap">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">ORDER BLOCKS</span><span class="pill pb-" id="ob-count">0 ACTIVE</span></div>
+    <div class="cb" id="ob-list"><div style="color:var(--dim);font-size:11px;font-family:var(--mono)">Awaiting data...</div></div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">ICT KILL ZONES (XM UTC+2)</span></div>
+    <div class="cb">
+      <div class="row"><span class="ri">🇬🇧</span><span class="rl2">London KZ (10:00–13:00)</span><span id="kz-ldn"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">🇺🇸</span><span class="rl2">NY KZ (15:00–18:00)</span><span id="kz-ny"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">🔔</span><span class="rl2">London Close (17:00–19:00)</span><span id="kz-lc"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">📰</span><span class="rl2">News Blackout</span><span id="kz-news"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">💱</span><span class="rl2">Session Active</span><span id="kz-sess"><span class="pill pgr-">—</span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── RISK ── -->
+<div id="pg-risk" class="pg">
+  <div class="card">
+    <div class="ch"><span class="ct">ACCOUNT — XM LIVE</span></div>
+    <div class="cb">
+      <div class="sg">
+        <div class="sb"><div class="sv blue" id="acc-bal">—</div><div class="sl2">BALANCE</div></div>
+        <div class="sb"><div class="sv bull" id="acc-eq">—</div><div class="sl2">EQUITY</div></div>
+        <div class="sb"><div class="sv" id="acc-pnl">—</div><div class="sl2">TODAY PNL</div></div>
+      </div>
+      <div class="slbl">DRAWDOWN</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <div class="pw" style="flex:1"><div class="pf" id="dd-bar" style="width:0%;background:var(--green)"></div></div>
+        <span style="font-size:11px;font-family:var(--mono);min-width:40px;text-align:right" id="dd-val">—</span>
+      </div>
+      <div style="font-size:9px;color:var(--dim);font-family:var(--mono)">Max: 10% | Recovery: <span id="dd-mode">—</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">RISK CONTROLS</span></div>
+    <div class="cb">
+      <div class="row"><span class="ri">🎯</span><span class="rl2">Risk Per Trade</span><span class="rv blue" id="r-pct">—</span></div>
+      <div class="row"><span class="ri">💰</span><span class="rl2">Risk Amount</span><span class="rv blue" id="r-amt">—</span></div>
+      <div class="row"><span class="ri">📦</span><span class="rl2">Lot Size</span><span class="rv gold" id="r-lot">—</span></div>
+      <div class="row"><span class="ri">🏪</span><span class="rl2">Trades Today</span><span class="rv" id="r-trades">—</span></div>
+      <div class="row"><span class="ri">⚠</span><span class="rl2">Consec Losses</span><span class="rv bear" id="r-losses">—</span></div>
+      <div class="row"><span class="ri">⏱</span><span class="rl2">Cooldown</span><span id="r-cd"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">📡</span><span class="rl2">Spread Filter</span><span id="r-spread"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">🔄</span><span class="rl2">DD Recovery</span><span id="r-ddmode"><span class="pill pgr-">—</span></span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">DAILY LIMITS</span></div>
+    <div class="cb">
+      <div class="slbl">LOSS USED</div>
+      <div class="pw" style="margin-bottom:3px"><div class="pf" id="dloss-bar" style="width:0%;background:var(--red)"></div></div>
+      <div style="font-size:9px;color:var(--dim);font-family:var(--mono);margin-bottom:8px" id="dloss-txt">— / —</div>
+      <div class="slbl">PROFIT PROGRESS</div>
+      <div class="pw" style="margin-bottom:3px"><div class="pf" id="dprof-bar" style="width:0%;background:var(--green)"></div></div>
+      <div style="font-size:9px;color:var(--dim);font-family:var(--mono)" id="dprof-txt">— / —</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">PARTIAL CLOSE STATUS</span></div>
+    <div class="cb">
+      <div class="row"><span class="ri">1️⃣</span><span class="rl2">Partial 1 (40% at 1R)</span><span id="pc1"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">2️⃣</span><span class="rl2">Partial 2 (30% at 2R)</span><span id="pc2"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">⚖</span><span class="rl2">Break Even</span><span id="pc-be"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">📈</span><span class="rl2">Scale-In (1.5R)</span><span id="pc-si"><span class="pill pgr-">—</span></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TRADES ── -->
+<div id="pg-trades" class="pg">
+  <div class="slbl" style="padding-left:2px">OPEN POSITIONS (LIVE)</div>
+  <div id="open-trades"><div class="card"><div class="cb" style="color:var(--dim);font-size:11px;font-family:var(--mono)">No open positions or waiting for data...</div></div></div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">TRAILING STATUS</span></div>
+    <div class="cb">
+      <div class="row"><span class="ri">🔄</span><span class="rl2">Trail Mode</span><span class="rv blue" id="tr-mode">—</span></div>
+      <div class="row"><span class="ri">⚡</span><span class="rl2">Trail Active</span><span id="tr-active"><span class="pill pgr-">—</span></span></div>
+      <div class="row"><span class="ri">📍</span><span class="rl2">Current SL</span><span class="rv bear" id="tr-sl">—</span></div>
+      <div class="row"><span class="ri">🏔</span><span class="rl2">Highest High</span><span class="rv bull" id="tr-hh">—</span></div>
+      <div class="row"><span class="ri">🏔</span><span class="rl2">Lowest Low</span><span class="rv bear" id="tr-ll">—</span></div>
+      <div class="row"><span class="ri">📐</span><span class="rl2">Fib Level</span><span class="rv gold" id="tr-fib">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PERF ── -->
+<div id="pg-perf" class="pg">
+  <div class="card">
+    <div class="ch"><span class="ct">PERFORMANCE STATS</span></div>
+    <div class="cb">
+      <div class="sg" style="margin-bottom:8px">
+        <div class="sb"><div class="sv bull" id="p-wr">—</div><div class="sl2">WIN RATE</div></div>
+        <div class="sb"><div class="sv blue" id="p-pf">—</div><div class="sl2">PROF FACTOR</div></div>
+        <div class="sb"><div class="sv gold" id="p-str">—</div><div class="sl2">STREAK</div></div>
+      </div>
+      <div class="sg">
+        <div class="sb"><div class="sv" id="p-tot">—</div><div class="sl2">TOTAL</div></div>
+        <div class="sb"><div class="sv bull" id="p-wins">—</div><div class="sl2">WINS</div></div>
+        <div class="sb"><div class="sv bear" id="p-loss">—</div><div class="sl2">LOSSES</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><span class="ct">MAX DRAWDOWN</span></div>
+    <div class="cb">
+      <div class="row"><span class="ri">📉</span><span class="rl2">Max DD Recorded</span><span class="rv bear" id="p-dd">—</span></div>
+      <div class="row"><span class="ri">🏦</span><span class="rl2">Peak Balance</span><span class="rv blue" id="p-peak">—</span></div>
+      <div class="row"><span class="ri">📊</span><span class="rl2">Current Balance</span><span class="rv bull" id="p-bal">—</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SETTINGS ── -->
+<div id="pg-settings" class="pg">
+  <div class="card">
+    <div class="ch"><span class="ct">CONNECTION</span></div>
+    <div class="cb">
+      <div class="row"><span class="ri">🔑</span><span class="rl2">API Key</span><span class="rv" style="font-size:9px;color:var(--dim)">✓ Pre-configured</span></div>
+      <div class="row"><span class="ri">📦</span><span class="rl2">Bin ID</span><span class="rv blue" id="cfg-binid" style="font-size:10px">—</span></div>
+      <div class="row"><span class="ri">⏱</span><span class="rl2">Refresh Every</span><span class="rv">10 seconds</span></div>
+      <div class="row"><span class="ri">🏦</span><span class="rl2">Broker</span><span class="rv bull">XM Trading</span></div>
+      <div style="margin-top:10px">
+        <button onclick="showSetup()" style="width:100%;padding:10px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.3);border-radius:8px;color:var(--accent);font-size:12px;cursor:pointer;font-family:var(--sans);font-weight:600">Change Bin ID</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">BOT FEATURES</span></div>
+    <div class="cb" id="feature-toggles">
+      <div class="tog-row"><div class="tog-lbl"><h4>SMC Suite</h4><p>CHoCH, BOS, Displacement, Breakers</p></div><div class="tog on"></div></div>
+      <div class="tog-row"><div class="tog-lbl"><h4>ICT Kill Zones</h4><p>XM UTC+2 adjusted</p></div><div class="tog on"></div></div>
+      <div class="tog-row"><div class="tog-lbl"><h4>3-TF Confluence</h4><p>D1 + H4 + M15 required</p></div><div class="tog on"></div></div>
+      <div class="tog-row"><div class="tog-lbl"><h4>Wyckoff Phases</h4><p>Accum, Markup, Distrib</p></div><div class="tog on"></div></div>
+      <div class="tog-row"><div class="tog-lbl"><h4>VSA Signals</h4><p>Volume Spread Analysis</p></div><div class="tog on"></div></div>
+      <div class="tog-row"><div class="tog-lbl"><h4>Manual Trailing</h4><p>Auto-trail your manual XM trades</p></div><div class="tog on"></div></div>
+      <div class="tog-row"><div class="tog-lbl"><h4>Trade Journal</h4><p>Auto-log CSV on PC</p></div><div class="tog on"></div></div>
+      <div class="tog-row"><div class="tog-lbl"><h4>Scale-In Winners</h4><p>Add at 1.5R pullback</p></div><div class="tog"></div></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><span class="ct">SETUP GUIDE</span></div>
+    <div class="cb">
+      <div style="font-size:11px;font-family:var(--mono);color:var(--dim);line-height:2">
+        1. On PC: Open XM MT5<br>
+        2. File → Open Data Folder → MQL5 → Experts<br>
+        3. Paste JireenUltraBot_v5_XM.mq5 file<br>
+        4. Press F7 to compile (0 errors)<br>
+        5. Tools → Options → Expert Advisors<br>
+        &nbsp;&nbsp;&nbsp;✓ Allow WebRequest<br>
+        &nbsp;&nbsp;&nbsp;Add: https://api.jsonbin.io<br>
+        6. Open XAUUSD H1 chart<br>
+        7. Drag EA onto chart<br>
+        8. Set InpJSONBinID = your Bin ID<br>
+        9. Click Auto Trading button<br>
+        10. Watch this dashboard update live!
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- content -->
+
+<!-- BOTTOM NAV -->
+<div class="bnav">
+  <button class="nb on" id="nav-overview" onclick="showTab('overview')"><span>📊</span><span>OVERVIEW</span></button>
+  <button class="nb" id="nav-signals"  onclick="showTab('signals')"><span>🎯</span><span>SIGNALS</span></button>
+  <button class="nb" id="nav-smc"      onclick="showTab('smc')"><span>🧠</span><span>SMC</span></button>
+  <button class="nb" id="nav-risk"     onclick="showTab('risk')"><span>⚖</span><span>RISK</span></button>
+  <button class="nb" id="nav-trades"   onclick="showTab('trades')"><span>💼</span><span>TRADES</span></button>
+</div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+const API_KEY = '$2a$10$R/JRBazvuoHZLgmf96DPwexc1Ts3.3l2EPmQNVt82ZXCSfCuaDk6G';
+let BIN_ID = localStorage.getItem('jireen_bin_id') || '';
+let lastData = null;
+let isConnected = false;
+let fetchTimer = null;
+let currentTab = 'overview';
+
+// ── SIGNAL DEFINITIONS (all 30) ──────────────────────────────────
+const SIGNALS = [
+  {name:'Weekly Bias',      cat:'HTF',    pts:2},
+  {name:'D1 EMA (200)',     cat:'HTF',    pts:3},
+  {name:'H4 EMA (50)',      cat:'HTF',    pts:2},
+  {name:'M15 EMA (200)',    cat:'HTF',    pts:1},
+  {name:'Market Structure', cat:'STRUCT', pts:4},
+  {name:'SMC Bias',         cat:'SMC',    pts:3},
+  {name:'CHoCH',            cat:'SMC',    pts:4},
+  {name:'BOS',              cat:'SMC',    pts:2},
+  {name:'Displacement',     cat:'SMC',    pts:3},
+  {name:'Premium/Discount', cat:'SMC',    pts:2},
+  {name:'Order Block',      cat:'SMC',    pts:3},
+  {name:'Breaker Block',    cat:'SMC',    pts:3},
+  {name:'Liq Sweep',        cat:'PRICE',  pts:4},
+  {name:'Fair Value Gap',   cat:'PRICE',  pts:3},
+  {name:'Retail Trap',      cat:'PRICE',  pts:3},
+  {name:'RSI 3-TF',         cat:'OSCIL',  pts:4},
+  {name:'MACD Cross',       cat:'OSCIL',  pts:2},
+  {name:'MACD Direction',   cat:'OSCIL',  pts:1},
+  {name:'Stochastic',       cat:'OSCIL',  pts:2},
+  {name:'EMA Stack',        cat:'TREND',  pts:2},
+  {name:'BB Squeeze',       cat:'TREND',  pts:1},
+  {name:'BB Ride',          cat:'TREND',  pts:1},
+  {name:'Wyckoff Phase',    cat:'MACRO',  pts:3},
+  {name:'VSA',              cat:'VOL',    pts:2},
+  {name:'VWAP',             cat:'VOL',    pts:1},
+  {name:'ICT Kill Zone',    cat:'TIME',   pts:2},
+  {name:'Divergence',       cat:'DIVERG', pts:2},
+  {name:'Candle Pattern',   cat:'CANDLE', pts:4},
+  {name:'Momentum',         cat:'MOMENT', pts:2},
+  {name:'Vol Regime Bonus', cat:'VOL',    pts:1},
+];
+
+const CAT_COLOR = {HTF:'#00d4ff',STRUCT:'#00ff88',SMC:'#aa44ff',PRICE:'#ffcc00',OSCIL:'#ff8800',TREND:'#00d4ff',MACRO:'#00d4ff',VOL:'#00d4ff',TIME:'#ffcc00',DIVERG:'#ff3355',CANDLE:'#00ff88',MOMENT:'#ff8800'};
+const TRAIL_NAMES = {0:'ATR',1:'Chandelier',2:'Swing',3:'Stepped',4:'SAR',5:'EMA',6:'Hybrid',7:'Fibonacci',8:'Adaptive Vol'};
+
+// ── SETUP ─────────────────────────────────────────────────────────
+function saveBinID() {
+  const v = document.getElementById('bin-input').value.trim();
+  if(!v || v.length < 10) { alert('Please enter a valid Bin ID'); return; }
+  BIN_ID = v;
+  localStorage.setItem('jireen_bin_id', BIN_ID);
+  document.getElementById('setup-overlay').style.display = 'none';
+  document.getElementById('cfg-binid').textContent = BIN_ID.substring(0,8)+'...';
+  startFetching();
+}
+function showSetup() {
+  document.getElementById('setup-overlay').style.display = 'flex';
+  document.getElementById('bin-input').value = BIN_ID;
+}
+window.onload = () => {
+  if(BIN_ID) {
+    document.getElementById('setup-overlay').style.display = 'none';
+    document.getElementById('cfg-binid').textContent = BIN_ID.substring(0,8)+'...';
+    startFetching();
+  } else {
+    document.getElementById('bin-input').focus();
+  }
+  updateClock();
+  setInterval(updateClock, 1000);
+};
+
+// ── NAVIGATION ────────────────────────────────────────────────────
+function showTab(id) {
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab,.nb').forEach(b=>b.classList.remove('on'));
+  document.getElementById('pg-'+id).classList.add('on');
+  document.getElementById('nav-'+id)?.classList.add('on');
+  document.querySelectorAll('.tab').forEach(t=>{ if(t.textContent.toLowerCase().includes(id.substring(0,3).toLowerCase())) t.classList.add('on'); });
+  currentTab = id;
+}
+
+// ── CLOCK ─────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent = now.toUTCString().replace('GMT','UTC') + ' | XM UTC+2';
+}
+
+// ── FETCH FROM JSONBIN ────────────────────────────────────────────
+async function fetchData(force=false) {
+  if(!BIN_ID) return;
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      headers: {
+        'X-Master-Key': API_KEY,
+        'X-Bin-Meta': 'false'
+      }
+    });
+    if(!res.ok) throw new Error('HTTP '+res.status);
+    const json = await res.json();
+    const d = json.record || json;
+    if(!d || !d.signal) throw new Error('No bot data yet');
+    lastData = d;
+    isConnected = true;
+    updateConnStatus(true, d.timestamp || '');
+    renderAll(d);
+  } catch(e) {
+    isConnected = false;
+    updateConnStatus(false, e.message);
+    console.log('Fetch error:', e);
+  }
+}
+
+function startFetching() {
+  fetchData(true);
+  if(fetchTimer) clearInterval(fetchTimer);
+  fetchTimer = setInterval(()=>fetchData(false), 10000);
+}
+
+function updateConnStatus(ok, msg) {
+  const el = document.getElementById('conn-status');
+  const banner = document.getElementById('conn-banner');
+  const rbtn = document.querySelector('.rbtn');
+  if(ok) {
+    el.className = 'live-b'; el.innerHTML = '<div class="dot"></div>LIVE';
+    banner.className = 'conn-banner conn-ok';
+    banner.textContent = '✓ Connected to XM MT5 bot | Last update: '+(msg||'—');
+  } else {
+    el.className = 'err-b'; el.innerHTML = '✗ OFFLINE';
+    banner.className = 'conn-banner conn-err';
+    banner.textContent = '✗ Not connected — Is EA running on XM MT5? '+msg;
+  }
+}
+
+// ── RENDER ALL ────────────────────────────────────────────────────
+function renderAll(d) {
+  renderOverview(d);
+  renderSignals(d);
+  renderSMC(d);
+  renderRisk(d);
+  renderTrades(d);
+  renderPerf(d);
+  renderTicker(d);
+}
+
+function pill(cls, txt) { return `<span class="pill ${cls}">${txt}</span>`; }
+
+// ── OVERVIEW ──────────────────────────────────────────────────────
+function renderOverview(d) {
+  const sig = d.signal || 'WAIT';
+  const isBuy = sig==='BUY', isSell = sig==='SELL';
+  const b = document.getElementById('sig-banner');
+  b.className = 'sig-banner '+(isBuy?'buy':isSell?'sell':'wait')+' pulse';
+  document.getElementById('sig-icon').textContent = isBuy?'🟢':isSell?'🔴':'⏳';
+  document.getElementById('sig-dir').textContent = isBuy?'BUY SIGNAL':isSell?'SELL SIGNAL':'WAITING...';
+  document.getElementById('sig-dir').style.color = isBuy?'var(--green)':isSell?'var(--red)':'var(--gold)';
+  const reasons = (d.reason||'').trim().split(/\s+/).filter(Boolean);
+  document.getElementById('sig-reason').textContent = reasons.slice(0,6).join(' ')+(reasons.length>6?'…':'');
+  const sc = isBuy?d.scoreBuy:isSell?d.scoreSell:Math.max(d.scoreBuy||0,d.scoreSell||0);
+  document.getElementById('sig-score').textContent = sc||'0';
+  document.getElementById('sig-score').style.color = isBuy?'var(--green)':isSell?'var(--red)':'var(--gold)';
+
+  const buy = d.scoreBuy||0, sell = d.scoreSell||0, min = d.minScore||7;
+  animRing('ring-buy', buy, 20);
+  animRing('ring-sell', sell, 20);
+  document.getElementById('score-buy').textContent = buy;
+  document.getElementById('score-sell').textContent = sell;
+  document.getElementById('score-min').textContent = min;
+  const ok = (isBuy&&buy>=min)||(isSell&&sell>=min);
+  document.getElementById('trade-ok').innerHTML = ok?pill('pg-','✓ TRADE OK'):pill('pr-','✗ BELOW MIN');
+
+  const vol = d.volRegime||'—';
+  const regCls = vol==='LOW'?'pb-':vol==='NORMAL'?'pb-':vol==='HIGH'?'py-':'pr-';
+  document.getElementById('regime-pill').textContent = vol+' VOL';
+  document.getElementById('regime-pill').className = 'pill '+regCls;
+
+  // Reason tags
+  document.getElementById('reason-tags').innerHTML = reasons.map(r=>{
+    const c = r.includes('+')&&!r.includes('Trap')?'pg-':r.includes('RTrapS')||r.includes('Bear')?'pr-':r.includes('ICT')||r.includes('KZ')?'py-':r.includes('SMC')||r.includes('CHoCH')||r.includes('BOS')?'pp-':'pb-';
+    return `<span class="pill ${c}">${r}</span>`;
+  }).join('');
+
+  const struc = d.structure||'—';
+  el('ov-struct').textContent = struc==='BULL'?'▲ BULL BOS':struc==='BEAR'?'▼ BEAR BOS':'→ RANGING';
+  el('ov-struct').className = 'rv '+(struc==='BULL'?'bull':struc==='BEAR'?'bear':'gold');
+  const smc = d.smcBias||'—';
+  el('ov-smc').textContent = smc==='BULL'?'↑ BULLISH':smc==='BEAR'?'↓ BEARISH':'~ NEUTRAL';
+  el('ov-smc').className = 'rv '+(smc==='BULL'?'bull':smc==='BEAR'?'bear':'gold');
+  el('ov-wyc').textContent = d.wyckoff||'—';
+  el('ov-vol').textContent = d.volRegime||'—';
+  const wb = d.weeklyBias||0;
+  el('ov-week').textContent = wb>0?'↑ BULLISH':wb<0?'↓ BEARISH':'~ NEUTRAL';
+  el('ov-week').className = 'rv '+(wb>0?'bull':wb<0?'bear':'gold');
+  el('ov-kz').innerHTML = d.inKZ?pill('pg-','✓ ACTIVE'):pill('pgr-','OFF');
+  el('ov-news').innerHTML = d.newsBlock?pill('pr-','⚠ BLOCKED'):pill('pgr-','CLEAR');
+  el('ov-sess').innerHTML = d.session&&d.session!=='CLOSED'?pill('pg-',d.session):pill('pgr-','CLOSED');
+
+  el('kp-price').textContent = fmt(d.price);
+  el('kp-entry').textContent = fmt(d.entry);
+  el('kp-sl').textContent    = fmt(d.sl);
+  el('kp-tp').textContent    = fmt(d.tp);
+  el('kp-vwap').textContent  = fmt(d.vwap);
+  el('kp-equil').textContent = fmt(d.equil);
+  el('kp-atr').textContent   = fmt(d.atr);
+  const sprd = d.spread||0;
+  el('kp-spread').innerHTML  = fmt(sprd)+' '+pill(sprd<0.001?'pg-':'pr-',sprd<0.001?'OK':'WIDE');
+}
+
+// ── SIGNALS TABLE ─────────────────────────────────────────────────
+function renderSignals(d) {
+  const reasons = (d.reason||'').toLowerCase();
+  const isBuy = d.signal==='BUY';
+  el('sig-tbody').innerHTML = SIGNALS.map(s=>{
+    const key = s.name.toLowerCase().replace(/[\s\/\-]/g,'');
+    const active = reasons.split(' ').some(r=>r.replace(/[+→✓]/g,'').includes(key.substring(0,5)));
+    const dotBg = active?(isBuy?'rgba(0,255,136,0.2)':'rgba(255,51,85,0.2)'):'rgba(255,255,255,0.05)';
+    const dotC  = active?(isBuy?'var(--green)':'var(--red)'):'var(--dim)';
+    const cc = CAT_COLOR[s.cat]||'var(--dim)';
+    return `<tr>
+      <td><div style="font-weight:600;font-size:11px">${s.name}</div></td>
+      <td><div style="font-size:9px;font-family:var(--mono);color:${cc}">${s.cat}</div></td>
+      <td><div class="sdot" style="background:${dotBg};color:${dotC}">${active?'+'+s.pts:'—'}</div></td>
+      <td>${active?pill(isBuy?'pg-':'pr-','✓ ON'):pill('pgr-','OFF')}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── SMC ───────────────────────────────────────────────────────────
+function renderSMC(d) {
+  const v = (val, bull, bear, neutral='—')=> val===true||val==='BULL'?bull:val===false||val==='BEAR'?bear:val||neutral;
+  smcEl('smc-choch', d.choch, d.choch?'ACTIVE':'NONE', d.choch?'bull':'bear');
+  smcEl('smc-bos',   d.bos,   d.bos?'BREAK':'NONE',   d.bos?'bull':'bear');
+  const disp = d.displacement||'NONE';
+  el('smc-disp').textContent = disp;
+  el('smc-disp').className = disp==='BULL'?'bull':disp==='BEAR'?'bear':'';
+  const zone = d.zone||'—';
+  el('smc-zone').textContent = zone;
+  el('smc-zone').className = zone==='DISCOUNT'?'bull':zone==='PREMIUM'?'bear':'';
+  const liq = d.liqSweep||'NONE';
+  el('smc-liq').textContent = liq; el('smc-liq').className = liq==='BULL'?'bull':liq==='BEAR'?'bear':'';
+  const fvg = d.fvg||'NONE';
+  el('smc-fvg').textContent = fvg; el('smc-fvg').className = fvg==='BULL'?'bull':fvg==='BEAR'?'bear':'';
+  const trap = d.trap||'NONE';
+  el('smc-trap').textContent = trap==='SELL_TRAP'?'SELL TRAP':trap==='BUY_TRAP'?'BUY TRAP':'NONE';
+  el('smc-trap').className = trap==='BUY_TRAP'?'bull':trap==='SELL_TRAP'?'bear':'';
+  const price = d.price||0, vwap = d.vwap||0;
+  if(vwap>0){el('smc-vwap').textContent=price>vwap?'ABOVE VWAP':'BELOW VWAP';el('smc-vwap').className=price>vwap?'bull':'bear';}
+
+  const obs = d.orderBlocks||[];
+  el('ob-count').textContent = obs.length+' ACTIVE';
+  if(obs.length===0){el('ob-list').innerHTML='<div style="color:var(--dim);font-size:11px;font-family:var(--mono)">No active order blocks</div>'; return;}
+  el('ob-list').innerHTML = obs.map(o=>`
+    <div class="row">
+      ${pill(o.type==='BULL'||o.isBreaker&&o.type==='BULL'?'pg-':'pr-', (o.isBreaker?'BREAKER ':'')+o.type)}
+      <div style="flex:1;padding-left:8px">
+        <div style="font-size:11px;font-family:var(--mono)">${fmt(o.high)} – ${fmt(o.low)}</div>
+        <div style="font-size:9px;color:var(--dim);font-family:var(--mono)">Str:${o.str||0} Touches:${o.tc||0}</div>
+      </div>
+    </div>`).join('');
+
+  el('kz-ldn').innerHTML  = d.inKZ?pill('pg-','✓ ACTIVE'):pill('pgr-','OFF');
+  el('kz-ny').innerHTML   = d.inKZ?pill('pgr-','CHECK'):pill('pgr-','OFF');
+  el('kz-lc').innerHTML   = pill('pgr-','CHECK TIME');
+  el('kz-news').innerHTML = d.newsBlock?pill('pr-','⚠ BLOCKED'):pill('pgr-','CLEAR');
+  el('kz-sess').innerHTML = d.session&&d.session!=='CLOSED'?pill('pg-',d.session):pill('pgr-','CLOSED');
+}
+function smcEl(id, val, text, cls) { el(id).textContent=text; el(id).className=cls||''; }
+
+// ── RISK ──────────────────────────────────────────────────────────
+function renderRisk(d) {
+  const bal = d.balance||0, eq = d.equity||0, pnl = d.dailyPnl||0;
+  el('acc-bal').textContent = '$'+bal.toLocaleString(undefined,{maximumFractionDigits:2});
+  el('acc-eq').textContent  = '$'+eq.toLocaleString(undefined,{maximumFractionDigits:2});
+  el('acc-pnl').textContent = (pnl>=0?'+':'')+'$'+Math.abs(pnl).toFixed(2);
+  el('acc-pnl').className   = 'sv '+(pnl>=0?'bull':'bear');
+
+  const dd = d.drawdown||0;
+  el('dd-bar').style.width = Math.min(dd*10,100)+'%';
+  el('dd-bar').style.background = dd<5?'var(--green)':dd<8?'var(--gold)':'var(--red)';
+  el('dd-val').textContent = dd.toFixed(1)+'%';
+  el('dd-val').style.color = dd<5?'var(--green)':dd<8?'var(--gold)':'var(--red)';
+  el('dd-mode').textContent = d.inDDRecovery?'YES ⚠':'NO';
+  el('dd-mode').style.color = d.inDDRecovery?'var(--red)':'var(--green)';
+
+  el('r-pct').textContent    = (d.riskPct||1).toFixed(1)+'%';
+  el('r-amt').textContent    = '$'+(bal*(d.riskPct||1)/100).toFixed(2);
+  el('r-lot').textContent    = (d.lot||0).toFixed(2);
+  el('r-trades').textContent = (d.tradesDay||0)+' / '+(d.maxTrades||4);
+  el('r-losses').textContent = (d.consecLosses||0)+' / '+(d.maxLosses||2);
+  el('r-cd').innerHTML       = pill('pg-','READY');
+  el('r-spread').innerHTML   = (d.spread||0)<0.001?pill('pg-','PASS'):pill('pr-','WIDE');
+  el('r-ddmode').innerHTML   = d.inDDRecovery?pill('pr-','RECOVERY MODE'):pill('pg-','NORMAL');
+
+  const dlossMax = bal*0.03, dprofMax = bal*0.06;
+  const dlossUsed = Math.max(-(pnl),0), dprofUsed = Math.max(pnl,0);
+  el('dloss-bar').style.width = Math.min(dlossUsed/dlossMax*100,100)+'%';
+  el('dprof-bar').style.width = Math.min(dprofUsed/dprofMax*100,100)+'%';
+  el('dloss-txt').textContent = '$'+dlossUsed.toFixed(0)+' used / $'+dlossMax.toFixed(0)+' max';
+  el('dprof-txt').textContent = '$'+dprofUsed.toFixed(0)+' / $'+dprofMax.toFixed(0)+' target';
+
+  el('pc1').innerHTML  = d.pc1?pill('pg-','✓ DONE'):pill('pgr-','PENDING 1R');
+  el('pc2').innerHTML  = d.pc2?pill('pg-','✓ DONE'):pill('pgr-','PENDING 2R');
+  el('pc-be').innerHTML= d.be?pill('pg-','✓ SET'):pill('pgr-','PENDING');
+  el('pc-si').innerHTML= d.scaleIn?pill('pg-','✓ IN'):pill('py-','WAIT 1.5R');
+}
+
+// ── TRADES ────────────────────────────────────────────────────────
+function renderTrades(d) {
+  const pos = d.positions||[];
+  const otEl = el('open-trades');
+  if(pos.length===0){
+    otEl.innerHTML = '<div class="card"><div class="cb" style="color:var(--dim);font-size:11px;font-family:var(--mono)">No open positions</div></div>';
+  } else {
+    otEl.innerHTML = pos.map(p=>{
+      const isBuy = p.dir==='BUY';
+      const pnlSign = (p.pnl||0)>=0?'+':'';
+      return `<div class="tr">
+        <div class="td ${isBuy?'buy':'sell'}">${p.dir}</div>
+        <div>
+          <div style="font-size:13px;font-weight:600">${d.symbol||'—'} ${p.isBot?'🤖':'👤'}</div>
+          <div style="font-size:9px;color:var(--dim);font-family:var(--mono)">${(p.lot||0).toFixed(2)}lot | ${fmt(p.entry)} | SL:${fmt(p.sl)}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:15px;font-weight:700;font-family:var(--mono);color:${(p.pnl||0)>=0?'var(--green)':'var(--red)'}">${pnlSign}$${Math.abs(p.pnl||0).toFixed(2)}</div>
+          <div style="font-size:9px;color:var(--dim);font-family:var(--mono)">${(p.rrCur||0).toFixed(2)}R</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const tm = d.trailMode||8;
+  el('tr-mode').textContent   = tm+' – '+(TRAIL_NAMES[tm]||'Adaptive');
+  el('tr-active').innerHTML   = d.trailActive?pill('pg-','✓ ACTIVE'):pill('pgr-','WAITING');
+  el('tr-sl').textContent     = fmt(d.trailSL);
+  el('tr-hh').textContent     = fmt(d.highestHigh);
+  el('tr-ll').textContent     = fmt(d.lowestLow);
+  el('tr-fib').textContent    = d.fibHigh&&d.fibLow?'61.8% ref set':'—';
+}
+
+// ── PERF ──────────────────────────────────────────────────────────
+function renderPerf(d) {
+  const tot = d.totalTrades||0, wins = d.wins||0, loss = d.losses||0;
+  const wr = tot>0?(wins/tot*100).toFixed(0)+'%':'—';
+  const pf = (d.profFactor||0)>0?(d.profFactor||0).toFixed(2):'—';
+  el('p-wr').textContent  = wr;
+  el('p-pf').textContent  = pf;
+  el('p-str').textContent = (d.streak||0)+(d.streakWin?'W':'L');
+  el('p-str').className   = 'sv '+(d.streakWin?'bull':'bear');
+  el('p-tot').textContent = tot;
+  el('p-wins').textContent= wins;
+  el('p-loss').textContent= loss;
+  el('p-dd').textContent  = (d.drawdown||0).toFixed(1)+'%';
+  el('p-peak').textContent= '$'+((d.balance||0)).toLocaleString(undefined,{maximumFractionDigits:0});
+  el('p-bal').textContent = '$'+((d.balance||0)).toLocaleString(undefined,{maximumFractionDigits:0});
+}
+
+// ── TICKER ────────────────────────────────────────────────────────
+function renderTicker(d) {
+  const p = d.price||0, ts = d.timestamp||'—';
+  ['t1','t1b'].forEach(id=>{ el(id).textContent=fmt(p); el(id).className='tv bull'; });
+  ['t5','t5b'].forEach(id=>el(id).textContent=d.symbol||'—');
+  ['t6','t6b'].forEach(id=>el(id).textContent=ts.split(' ')[1]||ts);
+}
+
+// ── HELPERS ──────────────────────────────────────────────────────
+function el(id){ return document.getElementById(id)||{textContent:'',className:'',innerHTML:'',style:{}} }
+function fmt(v){ if(!v&&v!==0)return '—'; const n=parseFloat(v); if(isNaN(n))return '—'; return n>100?n.toFixed(2):n>1?n.toFixed(4):n.toFixed(5); }
+function animRing(id, score, max) {
+  const ring = document.getElementById(id); if(!ring)return;
+  const c=264, pct=Math.min(score/max,1);
+  ring.style.strokeDashoffset = c*(1-pct);
+}
+</script>
+</body>
+</html>
